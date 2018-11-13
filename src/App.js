@@ -10,15 +10,24 @@ const axiosGitHubGraphQL = axios.create({
   }
 });
 
+const GET_ORGANIZATION = `{
+  organization(login: "the-road-to-learn-react") {
+    name
+    url
+  }
+}`;
+
 const TITLE = 'React GraphQL GitHub Client';
 
 class App extends Component {
   state = {
     path: 'the-road-to-learn-react/the-road-to-learn-react',
+    organization: null,
+    errors: null,
   };
 
   componentDidMount() {
-    // @TODO: fetch data
+    this.onFetchFromGitHub();
   }
 
   onChange = event => {
@@ -31,8 +40,19 @@ class App extends Component {
     event.preventDefault();
   };
 
+  onFetchFromGitHub = () => {
+    axiosGitHubGraphQL
+      .post('', { query: GET_ORGANIZATION })
+      .then(result =>
+        this.setState(() => ({
+          organization: result.data.data.organization,
+          errors: result.data.errors,
+        })),
+      );
+  };
+
   render() {
-    const { path } = this.state;
+    const { path, organization, errors } = this.state;
 
     return (
       <div>
@@ -52,10 +72,33 @@ class App extends Component {
           <button type="submit">Search</button>
         </form>
         <hr />
-        {/*  @TODO: Show results. */}
+        {organization ? (
+          <Organization organization={organization} errors={errors} />
+        ) : (
+          <p>No information yet.</p>
+        )}
       </div>
     );
   }
 }
+
+const Organization = ({ organization, errors }) => {
+  if (errors) {
+    return (
+      <p>
+        <strong>Something went wrong: </strong>
+        {errors.map(error => error.message).join(' ')}
+      </p>
+    );
+  }
+  return (
+    <div>
+      <p>
+        <strong>Issues from organization: </strong>
+        <a href={organization.url}>{organization.name}</a>
+      </p>
+    </div>
+  );
+};
 
 export default App;
