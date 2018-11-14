@@ -1,5 +1,7 @@
 import React, { Component } from 'react';
 import axios from 'axios';
+import Organization from './components/Organization/Organization.js';
+import './App.css';
 
 const axiosGitHubGraphQL = axios.create({
   baseURL: 'https://api.github.com/graphql',
@@ -79,7 +81,7 @@ class App extends Component {
     const { path, organization, errors } = this.state;
 
     return (
-      <div>
+      <div className="App">
         <h1>{TITLE}</h1>
 
         <form onSubmit={this.onSubmit}>
@@ -105,43 +107,5 @@ class App extends Component {
     );
   }
 }
-
-const Organization = ({ organization, errors }) => {
-  if (errors) {
-    return (
-      <p>
-        <strong>Something went wrong: </strong>
-        {errors.map(error => error.message).join(' ')}
-      </p>
-    );
-  }
-  return (
-    <div>
-      <p>
-        <strong>Issues from organization: </strong>
-        <a href={organization.url}>{organization.name}</a>
-      </p>
-      <Repository repository={organization.repository} />
-    </div>
-  );
-};
-
-const Repository = ({ repository }) => (
-  <div>
-    <p>
-      <strong>In Repository: </strong>
-      <a href={repository.url}>{repository.name}</a>
-    </p>
-
-    <ul>
-      {repository.issues.edges.map(issue => (
-        <li key={issue.node.id}>
-          <a href={issue.node.url}>{issue.node.title}</a>
-          <span> ({issue.node.state})</span>
-        </li>
-      ))}
-    </ul>
-  </div>
-);
 
 export default App;

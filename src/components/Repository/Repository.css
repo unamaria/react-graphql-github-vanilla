@@ -1,0 +1,12 @@
+.Repository-title {
+  font-weight: normal;
+}
+
+.Repository-issues {
+  margin: 0;
+  padding-left: 1em;
+}
+
+.Repository-issue {
+  margin-bottom: 1em;
+}
