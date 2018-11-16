@@ -1,12 +1,25 @@
 import React from 'react';
 import './Repository.css';
 
-const Repository = ({ repository, onFetchMoreIssues }) => (
+const Repository = ({
+  repository,
+  onFetchMoreIssues,
+  onStarRepository,
+}) => (
   <div>
     <h3 className="Repository-title">
       <strong>In Repository: </strong>
       <a href={repository.url}>{repository.name}</a>
     </h3>
+
+    <button
+      type="button"
+      onClick={() =>
+        onStarRepository(repository.id, repository.viewerHasStarred)
+      }
+    >
+      {`Star (${repository.stargazers.totalCount} ⭐️s)`}
+    </button>
 
     <ul className="Repository-issues">
       {repository.issues.edges.map(issue => (
