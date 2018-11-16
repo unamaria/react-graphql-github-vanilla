@@ -18,7 +18,8 @@ const Repository = ({
         onStarRepository(repository.id, repository.viewerHasStarred)
       }
     >
-      {`Star (${repository.stargazers.totalCount} ⭐️s)`}
+      {repository.viewerHasStarred ? 'Unstar' : 'Star'}
+      {` (${repository.stargazers.totalCount} ⭐️s)`}
     </button>
 
     <ul className="Repository-issues">
