@@ -13,21 +13,34 @@ const axiosGitHubGraphQL = axios.create({
 });
 
 const GET_ISSUES_OF_REPOSITORY = `
-  query($organization: String!, $repository: String!) {
+  query($organization: String!, $repository: String!, $cursor: String) {
     organization(login: $organization) {
       name
       url
       repository(name: $repository) {
         name
         url
-        issues(last: 5) {
+        issues(first: 5, after: $cursor, states: [OPEN]) {
           edges {
             node {
               id
               title
               url
               state
+              reactions(last: 3) {
+                edges {
+                  node {
+                    id
+                    content
+                  }
+                }
+              }
             }
+          }
+          totalCount
+          pageInfo {
+            endCursor
+            hasNextPage
           }
         }
       }
@@ -35,18 +48,42 @@ const GET_ISSUES_OF_REPOSITORY = `
   }
 `;
 
-const getIssuesOfRepository = path => {
+const getIssuesOfRepository = (path, cursor) => {
   const [organization, repository] = path.split('/');
   return axiosGitHubGraphQL.post('', {
     query: GET_ISSUES_OF_REPOSITORY,
-    variables: { organization, repository },
+    variables: { organization, repository, cursor },
   });
 };
 
-const resolveIssuesQuery = queryResult => () => ({
-  organization: queryResult.data.data.organization,
-  errors: queryResult.data.errors,
-});
+const resolveIssuesQuery = (queryResult, cursor) => state => {
+  const { data, errors } = queryResult.data;
+
+  if (!cursor) {
+    return {
+      organization: data.organization,
+      errors,
+    };
+  }
+
+  const { edges: oldIssues } = state.organization.repository.issues;
+  const { edges: newIssues } = data.organization.repository.issues;
+  const updatedIssues = [ ...oldIssues, ...newIssues ];
+
+  return {
+    organization: {
+      ...data.organization,
+      repository: {
+        ...data.organization.repository,
+        issues: {
+          ...data.organization.repository.issues,
+          edges: updatedIssues,
+        },
+      },
+    },
+    errors,
+  }
+};
 
 const TITLE = 'React GraphQL GitHub Client';
 
@@ -71,10 +108,16 @@ class App extends Component {
     event.preventDefault();
   };
 
-  onFetchFromGitHub = path => {
-    getIssuesOfRepository(path).then(queryResult =>
-      this.setState(resolveIssuesQuery(queryResult)),
+  onFetchFromGitHub = (path, cursor) => {
+    getIssuesOfRepository(path, cursor).then(queryResult =>
+      this.setState(resolveIssuesQuery(queryResult, cursor)),
     );
+  };
+
+  onFetchMoreIssues = () => {
+    const { endCursor } = this.state.organization.repository.issues.pageInfo;
+
+    this.onFetchFromGitHub(this.state.path, endCursor);
   };
 
   render() {
@@ -99,7 +142,11 @@ class App extends Component {
         </form>
         <hr />
         {organization ? (
-          <Organization organization={organization} errors={errors} />
+          <Organization
+            organization={organization}
+            errors={errors}
+            onFetchMoreIssues={this.onFetchMoreIssues}
+          />
         ) : (
           <p>No information yet.</p>
         )}

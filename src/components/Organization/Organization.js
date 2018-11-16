@@ -2,7 +2,7 @@ import React from 'react';
 import Repository from '../../components/Repository/Repository.js';
 import './Organization.css';
 
-const Organization = ({ organization, errors }) => {
+const Organization = ({ organization, errors, onFetchMoreIssues }) => {
   if (errors) {
     return (
       <p>
@@ -17,7 +17,10 @@ const Organization = ({ organization, errors }) => {
         <strong>Issues from organization: </strong>
         <a href={organization.url}>{organization.name}</a>
       </h2>
-      <Repository repository={organization.repository} />
+      <Repository
+        repository={organization.repository}
+        onFetchMoreIssues={onFetchMoreIssues}
+      />
     </div>
   );
 };

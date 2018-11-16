@@ -1,7 +1,7 @@
 import React from 'react';
 import './Repository.css';
 
-const Repository = ({ repository }) => (
+const Repository = ({ repository, onFetchMoreIssues }) => (
   <div>
     <h3 className="Repository-title">
       <strong>In Repository: </strong>
@@ -13,9 +13,18 @@ const Repository = ({ repository }) => (
         <li key={issue.node.id} className="Repository-issue">
           <a href={issue.node.url}>{issue.node.title}</a>
           <span> ({issue.node.state})</span>
+          <ul>
+            {issue.node.reactions.edges.map(reaction => (
+              <li key={reaction.node.id}>{reaction.node.content}</li>
+            ))}
+          </ul>
         </li>
       ))}
     </ul>
+    <hr />
+    {repository.issues.pageInfo.hasNextPage && (
+      <button onClick={onFetchMoreIssues}>More</button>
+    )}
   </div>
 );
 
